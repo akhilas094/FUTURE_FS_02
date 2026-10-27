@@ -8,7 +8,7 @@ The project demonstrates how a business can manage potential customers from thei
 
 👉 [Open the Leadflow CRM Demo](https://akhila-leadflow-crm.idealtulip34.chatgpt.site)
 
-Anyone with this link can open the public demo without ChatGPT sign-in.
+.
 
 ## Features
 
