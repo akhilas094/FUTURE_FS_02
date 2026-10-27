@@ -1,0 +1,13 @@
+import React,{useEffect,useState} from 'react';
+import {createRoot} from 'react-dom/client';
+import CRM from './CRM';
+import './styles.css';
+function App(){const [session,setSession]=useState<any>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[busy,setBusy]=useState(false);const [email,setEmail]=useState(''),[password,setPassword]=useState('');
+async function check(){try{const r=await fetch('/api/auth/session');if(!r.ok)throw Error('Could not connect to the server.');setSession(await r.json());setError('')}catch(e){setError(e instanceof Error?e.message:'Unable to connect')}finally{setLoading(false)}}
+useEffect(()=>{check()},[]);
+async function login(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session?.csrfToken||''},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw Error(d.error||'Sign-in failed');setSession(d);setPassword('')}catch(e){setError(e instanceof Error?e.message:'Sign-in failed')}finally{setBusy(false)}}
+async function logout(){try{const r=await fetch('/api/auth/logout',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session.csrfToken},body:'{}'});if(!r.ok)throw Error('Could not sign out');setSession(null);await check()}catch(e){setError(e instanceof Error?e.message:'Unable to sign out')}}
+if(loading)return <div className="auth-screen"><p>Opening your workspace…</p></div>;
+if(session?.user)return <>{error&&<div role="alert" className="auth-error">{error}</div>}<CRM csrfToken={session.csrfToken} onLogout={logout}/></>;
+return <div className="auth-screen"><div className="auth-card"><a className="auth-logo" href="/portfolio/">leadflow<span>.</span></a><span className="eyebrow">YOUR PRIVATE WORKSPACE</span><h1>Welcome back.</h1><p>Sign in to keep your next opportunity moving.</p><form onSubmit={login}><label>Email address<input type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" required maxLength={254}/></label><label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" required maxLength={200}/></label>{error&&<p role="alert" className="auth-error">{error}</p>}<button className="btn primary" disabled={busy||!session}>{busy?'Signing in…':'Sign in to workspace →'}</button></form>{!session&&<button className="btn" onClick={check}>Retry connection</button>}<a href="/portfolio/" className="auth-back">Explore portfolio ↗</a><small>Admin access only · No public registration</small></div></div>}
+createRoot(document.getElementById('root')!).render(<App/>);
